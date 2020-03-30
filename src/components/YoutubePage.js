@@ -4,7 +4,6 @@ import styled from 'styled-components';
 import SearchBar from './SearchBar';
 import YoutubeList from './YoutubeList';
 
-
 const youtubeConfig = {
     apiKey: 'AIzaSyDhMZpj7wlmXuT1iV5UjSQ5_uB5KhPDBp8',
     baseUrl: 'https://www.googleapis.com/youtube/v3',
@@ -12,20 +11,17 @@ const youtubeConfig = {
     maxResults: 10
 }
 
-const Main = styled.div`
+const Main = styled.main`
     width: 100%;
-`
-
-const Wrap = styled.div`
-    width: 80%;
-    margin: 0 auto;
+    padding: 20px;
 `
 
 class YoutubePage extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            youtubeList: null
+            youtubeList: null,
+            searchValue: ''
         }
     }
 
@@ -42,16 +38,28 @@ class YoutubePage extends Component {
             })
     }
 
+    changeValue = (e) => {
+        e.persist()
+        this.setState({
+            searchValue: e.target.value
+        })
+    }
+
     render() {
-        const { youtubeList } = this.state
+        const {
+            youtubeList,
+            searchValue
+        } = this.state
+
         if (youtubeList === null) {
             return <div></div>
         } return (
             <Main>
-                <Wrap>
-                    {/* <SearchBar /> */}
-                    <YoutubeList youtubeList={youtubeList} />
-                </Wrap>
+                <SearchBar
+                    searchValue={searchValue}
+                    changeValue={this.changeValue}
+                />
+                <YoutubeList youtubeList={youtubeList} />
             </Main>
         )
     }
