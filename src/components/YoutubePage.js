@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+import styled from 'styled-components';
 import SearchBar from './SearchBar';
 import YoutubeList from './YoutubeList';
+
 
 const youtubeConfig = {
     apiKey: 'AIzaSyDhMZpj7wlmXuT1iV5UjSQ5_uB5KhPDBp8',
@@ -9,6 +11,15 @@ const youtubeConfig = {
     order: 'relevance',
     maxResults: 10
 }
+
+const Main = styled.div`
+    width: 100%;
+`
+
+const Wrap = styled.div`
+    width: 80%;
+    margin: 0 auto;
+`
 
 class YoutubePage extends Component {
     constructor(props) {
@@ -20,7 +31,7 @@ class YoutubePage extends Component {
 
     componentDidMount() {
         const searchVedioUrl = `${youtubeConfig.baseUrl}/search?part=snippet&type=video
-                            &order=${ youtubeConfig.order}&maxResults=10&q=熱門影片&key=${youtubeConfig.apiKey}`
+                            &order=${ youtubeConfig.order}&maxResults=10&q=熱門音樂&key=${youtubeConfig.apiKey}`
         axios.get(searchVedioUrl)
             .then((response) => {
                 const youtubeListData = response.data.items
@@ -36,14 +47,12 @@ class YoutubePage extends Component {
         if (youtubeList === null) {
             return <div></div>
         } return (
-            <>
-                <div className="youtube-page">
-                    <div className="wrap">
-                        {/* <SearchBar /> */}
-                        <YoutubeList youtubeList={youtubeList} />
-                    </div>
-                </div>
-            </>
+            <Main>
+                <Wrap>
+                    {/* <SearchBar /> */}
+                    <YoutubeList youtubeList={youtubeList} />
+                </Wrap>
+            </Main>
         )
     }
 }

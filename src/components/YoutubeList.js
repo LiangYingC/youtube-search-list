@@ -4,9 +4,10 @@ import YoutubeVideo from './YoutubeVideo';
 import './YoutubeList.css';
 
 const List = styled.div`
+    width: 100%;
     display: flex;
     flex-wrap: wrap;
-    width: 100%;
+    justify-content: flex-start;
 `
 const YoutubeList = ({ youtubeList }) => {
     return (
