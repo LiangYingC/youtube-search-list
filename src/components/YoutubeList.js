@@ -1,18 +1,16 @@
 import React from 'react';
+import YoutubeVideo from './YoutubeVideo';
 
 const YoutubeList = ({ youtubeList }) => {
     return (
         <div className="youtube-list">
             {youtubeList.map((youtubeItem) => {
                 return (
-                    <div className="youtube-vedio" key={`${youtubeItem.id.videoId}`}>
-                        <div className="vedio-img">
-                            <img src={`${youtubeItem.snippet.thumbnails.high.url}`} alt="" />
-                        </div>
-                        <div className="vedio-title">
-                            <h2>{youtubeItem.snippet.title}</h2>
-                        </div>
-                    </div>
+                    < YoutubeVideo
+                        key={youtubeItem.id.videoId}
+                        videoImg={youtubeItem.snippet.thumbnails.high.url}
+                        videoTitle={youtubeItem.snippet.title}
+                    />
                 )
             })}
         </div>
