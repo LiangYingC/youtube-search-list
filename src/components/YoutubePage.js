@@ -8,7 +8,7 @@ const youtubeConfig = {
     apiKey: 'AIzaSyDhMZpj7wlmXuT1iV5UjSQ5_uB5KhPDBp8',
     baseUrl: 'https://www.googleapis.com/youtube/v3',
     order: 'relevance',
-    maxResults: 10
+    maxResults: 12
 }
 
 const Main = styled.main`
@@ -22,7 +22,8 @@ class YoutubePage extends Component {
         this.state = {
             youtubeList: null,
             searchValue: '',
-            pageToken: ''
+            pageToken: '',
+            isPrePageRender: true
         }
     }
 
@@ -36,32 +37,62 @@ class YoutubePage extends Component {
     }
 
     handleScroll = () => {
-        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 450) {
-            console.log('show')
+        const { isPrePageRender } = this.state
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100 && isPrePageRender) {
+            this.setState({
+                isPrePageRender: false
+            }, this.handleSearch)
         }
     }
 
-    handleSearch = () => {
+    handleSearch = (e) => {
         const {
             searchValue,
-            pageToken
+            pageToken,
         } = this.state
+
+        let isNewSearch
+        e ? isNewSearch = true : isNewSearch = false
+
         const searchVedioUrl = `${youtubeConfig.baseUrl}/search?part=snippet&type=video
-                            &order=${ youtubeConfig.order}&maxResults=10&q=${searchValue ? searchValue : '熱門音樂'}
-                            &key=${youtubeConfig.apiKey}&pageToken`
-        console.log(searchVedioUrl)
-        this.getYoutubeList(searchVedioUrl)
+                            &order=${ youtubeConfig.order}&maxResults=${youtubeConfig.maxResults}&q=${searchValue ? searchValue : '熱門音樂'}
+                            &key=${youtubeConfig.apiKey}&pageToken=${!isNewSearch ? pageToken : ''}`
+        isNewSearch ?
+            searchValue ? this.clearYoutubeList(searchVedioUrl) : ''
+            : this.getYoutubeList(searchVedioUrl, pageToken)
     }
 
-    getYoutubeList = (searchVedioUrl) => {
+    clearYoutubeList = (searchVedioUrl) => {
+        this.setState({
+            youtubeList: null,
+            pageToken: ''
+        }, () => { this.getYoutubeList(searchVedioUrl) })
+    }
+
+    getYoutubeList = (searchVedioUrl, pageToken) => {
+        console.log(searchVedioUrl)
         axios.get(searchVedioUrl)
             .then((response) => {
-                console.log(response)
                 const youtubeListData = response.data.items
+                const nextPageToken = response.data.nextPageToken
+                console.log('getYoutubeList')
                 console.log(youtubeListData)
-                this.setState({
-                    youtubeList: youtubeListData
-                })
+                console.log(pageToken)
+                if (pageToken) {
+                    this.setState(preState => ({
+                        youtubeList: [
+                            ...preState.youtubeList,
+                            ...youtubeListData
+                        ],
+                        pageToken: nextPageToken,
+                        isPrePageRender: true
+                    }))
+                } else {
+                    this.setState({
+                        youtubeList: youtubeListData,
+                        pageToken: nextPageToken
+                    })
+                }
             })
     }
 
@@ -77,7 +108,9 @@ class YoutubePage extends Component {
             youtubeList,
             searchValue
         } = this.state
-
+        console.log('render')
+        console.log(youtubeList)
+        console.log(this.state.pageToken)
         if (youtubeList === null) {
             return <div></div>
         } return (

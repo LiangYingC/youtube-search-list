@@ -11,6 +11,7 @@ const List = styled.div`
     margin-top: 80px;
 `
 const YoutubeList = ({ youtubeList }) => {
+    console.log(youtubeList)
     return (
         <List>
             {youtubeList.map((youtubeItem) => {
@@ -18,7 +19,7 @@ const YoutubeList = ({ youtubeList }) => {
                     < YoutubeVideo
                         key={youtubeItem.id.videoId}
                         videoId={youtubeItem.id.videoId}
-                        videoImg={youtubeItem.snippet.thumbnails.high.url}
+                        videoImg={youtubeItem.snippet.thumbnails.medium.url}
                         videoTitle={youtubeItem.snippet.title}
                     />
                 )
