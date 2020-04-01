@@ -8,6 +8,7 @@ const List = styled.div`
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
+    margin-top: 80px;
 `
 const YoutubeList = ({ youtubeList }) => {
     return (

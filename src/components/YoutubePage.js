@@ -21,15 +21,42 @@ class YoutubePage extends Component {
         super(props)
         this.state = {
             youtubeList: null,
-            searchValue: ''
+            searchValue: '',
+            pageToken: ''
         }
     }
 
     componentDidMount() {
+        this.handleSearch()
+        window.addEventListener('scroll', this.handleScroll)
+    }
+
+    componentWillUnmount() {
+        window.addEventListener('scroll', this.handleScroll)
+    }
+
+    handleScroll = () => {
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 450) {
+            console.log('show')
+        }
+    }
+
+    handleSearch = () => {
+        const {
+            searchValue,
+            pageToken
+        } = this.state
         const searchVedioUrl = `${youtubeConfig.baseUrl}/search?part=snippet&type=video
-                            &order=${ youtubeConfig.order}&maxResults=10&q=熱門音樂&key=${youtubeConfig.apiKey}`
+                            &order=${ youtubeConfig.order}&maxResults=10&q=${searchValue ? searchValue : '熱門音樂'}
+                            &key=${youtubeConfig.apiKey}&pageToken`
+        console.log(searchVedioUrl)
+        this.getYoutubeList(searchVedioUrl)
+    }
+
+    getYoutubeList = (searchVedioUrl) => {
         axios.get(searchVedioUrl)
             .then((response) => {
+                console.log(response)
                 const youtubeListData = response.data.items
                 console.log(youtubeListData)
                 this.setState({
@@ -58,6 +85,7 @@ class YoutubePage extends Component {
                 <SearchBar
                     searchValue={searchValue}
                     changeValue={this.changeValue}
+                    handleSearch={this.handleSearch}
                 />
                 <YoutubeList youtubeList={youtubeList} />
             </Main>

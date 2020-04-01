@@ -2,10 +2,15 @@ import React from 'react';
 import styled from 'styled-components';
 
 const SearchArea = styled.div`
+    min-height: 80px;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
     color: #ffffff;
     background-color: #ff5556;
 `
@@ -21,7 +26,6 @@ const SearchInput = styled.input`
         color: #ffffff;
     }
 `
-
 const SearchIcon = styled.div`
     padding: 10px; 
     cursor: pointer; 
@@ -34,7 +38,8 @@ const SearchIcon = styled.div`
 
 const SearchBar = ({
     searchValue,
-    changeValue
+    changeValue,
+    handleSearch
 }) => {
     return (
         <SearchArea>
@@ -43,8 +48,8 @@ const SearchBar = ({
                 onChange={changeValue}
                 placeholder="請輸入搜尋內容"
             />
-            <SearchIcon>
-                <i class="fas fa-search"></i>
+            <SearchIcon onClick={handleSearch}>
+                <i className="fas fa-search" ></i>
             </SearchIcon>
         </SearchArea>
     )
