@@ -3,13 +3,7 @@ import axios from 'axios';
 import styled from 'styled-components';
 import SearchBar from './SearchBar';
 import YoutubeList from './YoutubeList';
-
-const youtubeConfig = {
-    apiKey: 'AIzaSyDhMZpj7wlmXuT1iV5UjSQ5_uB5KhPDBp8',
-    baseUrl: 'https://www.googleapis.com/youtube/v3',
-    order: 'relevance',
-    maxResults: 12
-}
+import { youtubeConfig } from '../configs/youtubeConfig';
 
 const Main = styled.main`
     width: 100%;
@@ -55,7 +49,7 @@ class YoutubePage extends Component {
         e ? isNewSearch = true : isNewSearch = false
 
         const searchVedioUrl = `${youtubeConfig.baseUrl}/search?part=snippet&type=video
-                            &order=${ youtubeConfig.order}&maxResults=${youtubeConfig.maxResults}&q=${searchValue ? searchValue : '熱門音樂'}
+                            &maxResults=${youtubeConfig.maxResults}&q=${searchValue ? searchValue : '熱門音樂'}
                             &key=${youtubeConfig.apiKey}&pageToken=${!isNewSearch ? pageToken : ''}`
         isNewSearch ?
             searchValue ? this.clearYoutubeList(searchVedioUrl) : ''
