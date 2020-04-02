@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 import YoutubeVideo from './YoutubeVideo';
-import './YoutubeList.css';
 
 const List = styled.div`
     width: 100%;
