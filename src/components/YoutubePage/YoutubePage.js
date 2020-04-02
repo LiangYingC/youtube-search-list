@@ -32,40 +32,37 @@ class YoutubePage extends Component {
         if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100 && isPrePageRender) {
             this.setState({
                 isPrePageRender: false
-            }, this.handleSearch)
+            }, this.getYoutubeList)
         }
     }
 
-    handleSearch = (e) => {
+    handleSearch = () => {
         const { searchValue } = this.state
-        let { pageToken } = this.state
 
-        const { addCacheToStore } = this.props
-        const { searchKeyWord, youtubeList } = this.state
-        addCacheToStore(searchKeyWord, youtubeList, pageToken)
-
-        let isNewSearch
-        e ? isNewSearch = true : isNewSearch = false
-
-        let youtubeListCache = null
-        if (isNewSearch) {
-            if (searchValue) {
-                const cacheData = this.checkSearchCache(searchValue)
-                if (cacheData) {
-                    youtubeListCache = cacheData.youtubeList
-                    pageToken = cacheData.pageToken
-                }
-            }
+        if (searchValue) {
+            this.setPreSearchToCache()
+            const cacheData = this.getSearchCache(searchValue)
+            this.resetYoutubeList(searchValue, cacheData)
+        } else {
+            alert('請輸入搜尋內容')
         }
-        const searchVedioUrl = `${youtubeConfig.baseUrl}/search?part=snippet&type=video
-                                &maxResults=${youtubeConfig.maxResults}&q=${searchValue}
-                                &key=AIzaSyAdjEsVveMWoqUjvz59GS3KMAwfsBVvKjQ&pageToken=${pageToken}`
-        isNewSearch ?
-            searchValue ? this.resetYoutubeList(searchVedioUrl, searchValue, pageToken, youtubeListCache) : alert('請輸入搜尋內容')
-            : this.getYoutubeList(searchVedioUrl, pageToken)
     }
 
-    checkSearchCache = (searchValue) => {
+    setPreSearchToCache = () => {
+        const { addCacheToStore } = this.props
+        const { searchKeyWord, youtubeList, pageToken } = this.state
+        addCacheToStore(searchKeyWord, youtubeList, pageToken)
+    }
+
+    resetYoutubeList = (searchValue, cacheData) => {
+        this.setState({
+            youtubeList: null,
+            pageToken: '',
+            searchKeyWord: searchValue
+        }, cacheData ? () => this.setCacheToState(cacheData) : this.getYoutubeList)
+    }
+
+    getSearchCache = (searchValue) => {
         const { youtubeSearchCache } = this.props
         const searchCacheKeyList = Object.keys(youtubeSearchCache)
         const cacheKey = searchCacheKeyList.find(key => key === searchValue)
@@ -75,25 +72,17 @@ class YoutubePage extends Component {
         } return null
     }
 
-    resetYoutubeList = (searchVedioUrl, searchValue, pageToken, youtubeListCache) => {
-        if (youtubeListCache) {
-            this.setState({
-                youtubeList: youtubeListCache,
-                pageToken: pageToken,
-                searchKeyWord: searchValue
-            })
-        } else {
-            this.setState({
-                youtubeList: null,
-                pageToken: pageToken,
-                searchKeyWord: searchValue
-            }, () => { this.getYoutubeList(searchVedioUrl) })
-        }
+    setCacheToState = (cacheData) => {
+        this.setState({
+            youtubeList: cacheData.youtubeList,
+            pageToken: cacheData.pageToken,
+        })
     }
 
-    getYoutubeList = (searchVedioUrl, pageToken) => {
-        console.log(searchVedioUrl)
-        axios.get(searchVedioUrl)
+    getYoutubeList = () => {
+        const { searchKeyWord, pageToken } = this.state
+        const searchUrl = this.setSearchApiUrl(searchKeyWord, pageToken)
+        axios.get(searchUrl)
             .then((response) => {
                 const youtubeListData = response.data.items
                 const nextPageToken = response.data.nextPageToken
@@ -116,6 +105,13 @@ class YoutubePage extends Component {
             })
     }
 
+    setSearchApiUrl = (searchValue, pageToken) => {
+        const searchUrl = `${youtubeConfig.baseUrl}/search?part=snippet&type=video
+                                &maxResults=${youtubeConfig.maxResults}&q=${searchValue}
+                                &key=${youtubeConfig.apiKey}&pageToken=${pageToken}`
+        return searchUrl
+    }
+
     changeValue = (e) => {
         e.persist()
         this.setState({
@@ -125,9 +121,6 @@ class YoutubePage extends Component {
 
     render() {
         const { youtubeList, searchValue } = this.state
-
-        const { youtubeSearchCache } = this.props
-
         if (youtubeList === null) {
             return <div></div>
         } return (
