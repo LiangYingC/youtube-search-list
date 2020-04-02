@@ -1,7 +1,6 @@
-import React from 'react';
 import styled from 'styled-components';
 
-const SearchArea = styled.div`
+export const SearchArea = styled.div`
     min-height: 90px;
     width: 100%;
     position: fixed;
@@ -10,7 +9,7 @@ const SearchArea = styled.div`
     z-index: 100;
     background-color: #fc8888;
 `
-const SearchBarWrap = styled.div`
+export const SearchBarWrap = styled.div`
     width: 60%;
     height: 50px;
     min-width: 300px;
@@ -28,7 +27,7 @@ const SearchBarWrap = styled.div`
     overflow: hidden;
 `
 
-const SearchInput = styled.input`
+export const SearchInput = styled.input`
     height: 100%;
     font-size: 22px;
     color: #555555;
@@ -42,7 +41,7 @@ const SearchInput = styled.input`
         color: #555555;
     }
 `
-const SearchIcon = styled.div`
+export const SearchIcon = styled.div`
     height: 100%;
     padding: 12px 25px; 
     cursor: pointer; 
@@ -60,26 +59,3 @@ const SearchIcon = styled.div`
         color: #ffffff;
     }
 `
-
-const SearchBar = ({
-    searchValue,
-    changeValue,
-    handleSearch
-}) => {
-    return (
-        <SearchArea>
-            <SearchBarWrap>
-                <SearchInput
-                    value={searchValue}
-                    onChange={changeValue}
-                    placeholder="請輸入搜尋內容"
-                />
-                <SearchIcon onClick={handleSearch}>
-                    <i className="fas fa-search" ></i>
-                </SearchIcon>
-            </SearchBarWrap>
-        </SearchArea>
-    )
-}
-
-export default SearchBar;

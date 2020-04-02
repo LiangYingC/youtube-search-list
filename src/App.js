@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import YoutubePage from './components/YoutubePage';
+import YoutubePage from './components/YoutubePage/YoutubePage';
 import { GlobalStyle } from './styles/globalStyle';
 
 class App extends Component {

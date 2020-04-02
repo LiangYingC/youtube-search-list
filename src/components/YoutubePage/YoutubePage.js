@@ -1,14 +1,9 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import styled from 'styled-components';
-import SearchBar from './SearchBar';
-import YoutubeList from './YoutubeList';
-import { youtubeConfig } from '../configs/youtubeConfig';
-
-const Main = styled.main`
-    width: 100%;
-    padding: 20px;
-`
+import SearchBar from '../SearchBar/SearchBar';
+import YoutubeList from '../YoutubeList/YoutubeList';
+import { youtubeConfig } from '../../configs/youtubeConfig';
+import { Main } from './YoutubePageStyle';
 
 class YoutubePage extends Component {
     constructor(props) {

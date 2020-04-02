@@ -1,14 +1,7 @@
 import React from 'react';
-import styled from 'styled-components';
-import YoutubeVideo from './YoutubeVideo';
+import YoutubeVideo from '../YoutubeVideo/YoutubeVideo';
+import { List } from './YoutubeListStyle';
 
-const List = styled.div`
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    margin-top: 80px;
-`
 const YoutubeList = ({ youtubeList }) => {
     console.log(youtubeList)
     return (
