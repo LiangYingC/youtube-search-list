@@ -6,6 +6,14 @@ const Video = styled.a`
     margin: 20px;
     box-shadow: 0 0 3px 0.5px rgba(0,0,0,0.15);
     border-radius: 4px;
+
+    @media (max-width: 993px) {
+        width: calc(50% - 40px);
+    }
+
+    @media (max-width: 769px) {
+        width: calc(100% - 40px);
+    }
 `
 
 const VideoTitle = styled.div`
@@ -15,6 +23,12 @@ const VideoTitle = styled.div`
         overflow:hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
+    }
+
+    @media (max-width: 412px) {
+        h2 {
+            font-size: 16px;
+        }
     }
 `
 
