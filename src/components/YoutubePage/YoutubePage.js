@@ -38,7 +38,7 @@ class YoutubePage extends Component {
 
     handleSearch = () => {
         const { searchValue } = this.state
-
+        window.scrollTo(0, 0)
         if (searchValue) {
             this.setPreSearchToCache()
             const cacheData = this.getSearchCache(searchValue)
@@ -58,6 +58,7 @@ class YoutubePage extends Component {
         this.setState({
             youtubeList: null,
             pageToken: '',
+            isPrePageRender: true,
             searchKeyWord: searchValue
         }, cacheData ? () => this.setCacheToState(cacheData) : this.getYoutubeList)
     }
@@ -82,6 +83,7 @@ class YoutubePage extends Component {
     getYoutubeList = () => {
         const { searchKeyWord, pageToken } = this.state
         const searchUrl = this.setSearchApiUrl(searchKeyWord, pageToken)
+
         axios.get(searchUrl)
             .then((response) => {
                 const youtubeListData = response.data.items
@@ -99,7 +101,8 @@ class YoutubePage extends Component {
                 } else {
                     this.setState({
                         youtubeList: youtubeListData,
-                        pageToken: nextPageToken
+                        pageToken: nextPageToken,
+                        isPrePageRender: true
                     })
                 }
             })
