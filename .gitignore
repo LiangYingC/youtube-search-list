@@ -1,9 +1,5 @@
 # dependencies
 /node_modules
-/.vscode
-
-# cache files
-bundle.js
 
 # key
 ignore.js
