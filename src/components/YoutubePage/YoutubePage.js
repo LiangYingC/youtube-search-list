@@ -122,7 +122,13 @@ class YoutubePage extends Component {
     render() {
         const { youtubeList, searchValue } = this.state
         if (youtubeList === null) {
-            return <div></div>
+            return (
+                <SearchBar
+                    searchValue={searchValue}
+                    changeValue={this.changeValue}
+                    handleSearch={this.handleSearch}
+                />
+            )
         } return (
             <Main>
                 <SearchBar
