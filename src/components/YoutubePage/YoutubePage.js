@@ -32,7 +32,7 @@ class YoutubePage extends Component {
         if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100 && isPrePageRender) {
             this.setState({
                 isPrePageRender: false
-            }, this.getYoutubeList)
+            }, this.getYoutubeListFromAPI)
         }
     }
 
@@ -54,15 +54,6 @@ class YoutubePage extends Component {
         addCacheToStore(searchKeyWord, youtubeList, pageToken)
     }
 
-    resetYoutubeList = (searchValue, cacheData) => {
-        this.setState({
-            youtubeList: null,
-            pageToken: '',
-            isPrePageRender: true,
-            searchKeyWord: searchValue
-        }, cacheData ? () => this.setCacheToState(cacheData) : this.getYoutubeList)
-    }
-
     getSearchCache = (searchValue) => {
         const { youtubeSearchCache } = this.props
         const searchCacheKeyList = Object.keys(youtubeSearchCache)
@@ -73,14 +64,23 @@ class YoutubePage extends Component {
         } return null
     }
 
-    setCacheToState = (cacheData) => {
+    resetYoutubeList = (searchValue, cacheData) => {
+        this.setState({
+            youtubeList: null,
+            pageToken: '',
+            isPrePageRender: true,
+            searchKeyWord: searchValue
+        }, cacheData ? () => this.setYoutubeListCacheToState(cacheData) : this.getYoutubeListFromAPI)
+    }
+
+    setYoutubeListCacheToState = (cacheData) => {
         this.setState({
             youtubeList: cacheData.youtubeList,
             pageToken: cacheData.pageToken,
         })
     }
 
-    getYoutubeList = () => {
+    getYoutubeListFromAPI = () => {
         const { searchKeyWord, pageToken } = this.state
         const searchUrl = this.setSearchApiUrl(searchKeyWord, pageToken)
 
