@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component, useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import axios from 'axios';
 import SearchBar from '../SearchBar/SearchBar';
@@ -6,144 +6,128 @@ import YoutubeList from '../YoutubeList/YoutubeList';
 import { youtubeConfig } from '../../configs/youtubeConfig';
 import { Main } from './YoutubePageStyle';
 
-class YoutubePage extends Component {
-    constructor(props) {
-        super(props)
-        this.state = {
-            youtubeList: null,
-            searchValue: '熱門音樂',
-            searchKeyWord: '熱門音樂',
-            pageToken: '',
-            isPrePageRender: true
-        }
-    }
+const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
 
-    componentDidMount() {
-        this.handleSearch()
-        window.addEventListener('scroll', this.handleScroll)
+    const [searchData, setSearchData] = useState({
+        inputValue: '熱門音樂',
+        keyWord: '熱門音樂'
+    })
+    const changeValue = (e) => {
+        e.persist()
+        return setSearchData(preSearchData => {
+            return {
+                ...preSearchData,
+                inputValue: e.target.value
+            }
+        })
     }
-
-    componentWillUnmount() {
-        window.addEventListener('scroll', this.handleScroll)
+    const startSearch = () => {
+        return setSearchData(preSearchData => {
+            return {
+                ...preSearchData,
+                keyWord: preSearchData.inputValue
+            }
+        })
     }
+    useEffect(() => {
+        handleSearch()
+    }, [searchData.keyWord])
 
-    handleScroll = () => {
-        const { isPrePageRender } = this.state
-        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100 && isPrePageRender) {
-            this.setState({
-                isPrePageRender: false
-            }, this.getYoutubeListFromAPI)
-        }
-    }
+    // 處理 youtubeList
+    const [youtubeList, setYoutubeList] = useState(null)
+    const [pageToken, setPageToken] = useState('')
+    const [isPrePageRender, setIsPrePageRender] = useState(true)
 
-    handleSearch = () => {
-        const { searchValue } = this.state
+    function handleSearch() {
+        const searchKeyWord = searchData.keyWord
         window.scrollTo(0, 0)
-        if (searchValue) {
-            this.setPreSearchToCache()
-            const cacheData = this.getSearchCache(searchValue)
-            this.resetYoutubeList(searchValue, cacheData)
+        if (searchKeyWord) {
+            addCacheToStore(searchKeyWord, youtubeList, pageToken)
+            const cacheData = getSearchCache(searchKeyWord)
+            resetYoutubeList(searchKeyWord, cacheData)
         } else {
             alert('請輸入搜尋內容')
         }
     }
 
-    setPreSearchToCache = () => {
-        const { addCacheToStore } = this.props
-        const { searchKeyWord, youtubeList, pageToken } = this.state
-        addCacheToStore(searchKeyWord, youtubeList, pageToken)
-    }
-
-    getSearchCache = (searchValue) => {
-        const { youtubeSearchCache } = this.props
+    function getSearchCache(searchKeyWord) {
         const searchCacheKeyList = Object.keys(youtubeSearchCache)
-        const cacheKey = searchCacheKeyList.find(key => key === searchValue)
-
+        const cacheKey = searchCacheKeyList.find(key => key === searchKeyWord)
         if (cacheKey) {
             return youtubeSearchCache[cacheKey]
         } return null
     }
 
-    resetYoutubeList = (searchValue, cacheData) => {
-        this.setState({
-            youtubeList: null,
-            pageToken: '',
-            isPrePageRender: true,
-            searchKeyWord: searchValue
-        }, cacheData ? () => this.setYoutubeListCacheToState(cacheData) : this.getYoutubeListFromAPI)
+    function resetYoutubeList(searchKeyWord, cacheData) {
+        setYoutubeList([])
+        setPageToken('')
+        setIsPrePageRender(true)
+        cacheData ? setYoutubeListCacheToState(cacheData) : getYoutubeListFromAPI(searchKeyWord)
     }
 
-    setYoutubeListCacheToState = (cacheData) => {
-        this.setState({
-            youtubeList: cacheData.youtubeList,
-            pageToken: cacheData.pageToken,
-        })
+    function setYoutubeListCacheToState(cacheData) {
+        setYoutubeList(cacheData.youtubeList)
+        setPageToken(cacheData.pageToken)
     }
 
-    getYoutubeListFromAPI = () => {
-        const { searchKeyWord, pageToken } = this.state
-        const searchUrl = this.setSearchApiUrl(searchKeyWord, pageToken)
-
+    function getYoutubeListFromAPI(searchKeyWord) {
+        const searchUrl = setSearchApiUrl(searchKeyWord, pageToken)
         axios.get(searchUrl)
             .then((response) => {
-                const youtubeListData = response.data.items
+                const newYoutubeList = response.data.items
                 const nextPageToken = response.data.nextPageToken
+                console.log('axios.get')
 
                 if (pageToken) {
-                    this.setState(preState => ({
-                        youtubeList: [
-                            ...preState.youtubeList,
-                            ...youtubeListData
-                        ],
-                        pageToken: nextPageToken,
-                        isPrePageRender: true
-                    }))
-                } else {
-                    this.setState({
-                        youtubeList: youtubeListData,
-                        pageToken: nextPageToken,
-                        isPrePageRender: true
+                    setYoutubeList(prevYoutubeList => {
+                        return [...prevYoutubeList, ...newYoutubeList]
                     })
+                    setPageToken(nextPageToken)
+                    setIsPrePageRender(true)
+                } else {
+                    setYoutubeList(newYoutubeList)
+                    setPageToken(nextPageToken)
+                    setIsPrePageRender(true)
                 }
             })
     }
 
-    setSearchApiUrl = (searchValue, pageToken) => {
+    function setSearchApiUrl(searchValue, pageToken) {
+        console.log(`setSearchApiUrl${searchValue}`)
         const searchUrl = `${youtubeConfig.baseUrl}/search?part=snippet&type=video
                                 &maxResults=${youtubeConfig.maxResults}&q=${searchValue}
                                 &key=${youtubeConfig.apiKey}&pageToken=${pageToken}`
         return searchUrl
     }
 
-    changeValue = (e) => {
-        e.persist()
-        this.setState({
-            searchValue: e.target.value
-        })
-    }
 
-    render() {
-        const { youtubeList, searchValue } = this.state
-        if (youtubeList === null) {
-            return (
-                <SearchBar
-                    searchValue={searchValue}
-                    changeValue={this.changeValue}
-                    handleSearch={this.handleSearch}
-                />
-            )
-        } return (
+
+    if (youtubeList === null) {
+        console.log('render function')
+        console.log('null')
+        return (
+            <SearchBar
+                searchValue={searchData.inputValue}
+                changeValue={changeValue}
+                handleSearch={startSearch}
+            />
+        )
+    } else {
+        console.log(youtubeList)
+        return (
             <Main>
                 <SearchBar
-                    searchValue={searchValue}
-                    changeValue={this.changeValue}
-                    handleSearch={this.handleSearch}
+                    searchValue={searchData.inputValue}
+                    changeValue={changeValue}
+                    handleSearch={startSearch}
                 />
                 <YoutubeList youtubeList={youtubeList} />
-            </Main>
+            </Main >
         )
     }
+
 }
+
 
 const mapStateToProps = (state) => {
     return {
@@ -163,3 +147,146 @@ const mapDispatchToProps = (dispatch) => {
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(YoutubePage);
+
+
+
+
+
+// class YoutubePage extends Component {
+//     constructor(props) {
+//         super(props)
+//         this.state = {
+//             youtubeList: null,
+//             searchValue: '熱門音樂',
+//             searchKeyWord: '熱門音樂',
+//             pageToken: '',
+//             isPrePageRender: true
+//         }
+//     }
+
+//     componentDidMount() {
+//         this.handleSearch()
+//         window.addEventListener('scroll', this.handleScroll)
+//     }
+
+//     componentWillUnmount() {
+//         window.addEventListener('scroll', this.handleScroll)
+//     }
+
+//     handleScroll = () => {
+//         const { isPrePageRender } = this.state
+//         if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100 && isPrePageRender) {
+//             this.setState({
+//                 isPrePageRender: false
+//             }, this.getYoutubeListFromAPI)
+//         }
+//     }
+
+//     handleSearch = () => {
+//         const { searchValue } = this.state
+//         window.scrollTo(0, 0)
+//         if (searchValue) {
+//             this.setPreSearchToCache()
+//             const cacheData = this.getSearchCache(searchValue)
+//             this.resetYoutubeList(searchValue, cacheData)
+//         } else {
+//             alert('請輸入搜尋內容')
+//         }
+//     }
+
+//     setPreSearchToCache = () => {
+//         const { addCacheToStore } = this.props
+//         const { searchKeyWord, youtubeList, pageToken } = this.state
+//         addCacheToStore(searchKeyWord, youtubeList, pageToken)
+//     }
+
+//     getSearchCache = (searchValue) => {
+//         const { youtubeSearchCache } = this.props
+//         const searchCacheKeyList = Object.keys(youtubeSearchCache)
+//         const cacheKey = searchCacheKeyList.find(key => key === searchValue)
+
+//         if (cacheKey) {
+//             return youtubeSearchCache[cacheKey]
+//         } return null
+//     }
+
+//     resetYoutubeList = (searchValue, cacheData) => {
+//         this.setState({
+//             youtubeList: null,
+//             pageToken: '',
+//             isPrePageRender: true,
+//             searchKeyWord: searchValue
+//         }, cacheData ? () => this.setYoutubeListCacheToState(cacheData) : this.getYoutubeListFromAPI)
+//     }
+
+//     setYoutubeListCacheToState = (cacheData) => {
+//         this.setState({
+//             youtubeList: cacheData.youtubeList,
+//             pageToken: cacheData.pageToken,
+//         })
+//     }
+
+//     getYoutubeListFromAPI = () => {
+//         const { searchKeyWord, pageToken } = this.state
+//         const searchUrl = this.setSearchApiUrl(searchKeyWord, pageToken)
+
+//         axios.get(searchUrl)
+//             .then((response) => {
+//                 const youtubeListData = response.data.items
+//                 const nextPageToken = response.data.nextPageToken
+
+//                 if (pageToken) {
+//                     this.setState(preState => ({
+//                         youtubeList: [
+//                             ...preState.youtubeList,
+//                             ...youtubeListData
+//                         ],
+//                         pageToken: nextPageToken,
+//                         isPrePageRender: true
+//                     }))
+//                 } else {
+//                     this.setState({
+//                         youtubeList: youtubeListData,
+//                         pageToken: nextPageToken,
+//                         isPrePageRender: true
+//                     })
+//                 }
+//             })
+//     }
+
+//     setSearchApiUrl = (searchValue, pageToken) => {
+//         const searchUrl = `${youtubeConfig.baseUrl}/search?part=snippet&type=video
+//                                 &maxResults=${youtubeConfig.maxResults}&q=${searchValue}
+//                                 &key=${youtubeConfig.apiKey}&pageToken=${pageToken}`
+//         return searchUrl
+//     }
+
+//     changeValue = (e) => {
+//         e.persist()
+//         this.setState({
+//             searchValue: e.target.value
+//         })
+//     }
+
+//     render() {
+//         const { youtubeList, searchValue } = this.state
+//         if (youtubeList === null) {
+//             return (
+//                 <SearchBar
+//                     searchValue={searchValue}
+//                     changeValue={this.changeValue}
+//                     handleSearch={this.handleSearch}
+//                 />
+//             )
+//         } return (
+//             <Main>
+//                 <SearchBar
+//                     searchValue={searchValue}
+//                     changeValue={this.changeValue}
+//                     handleSearch={this.handleSearch}
+//                 />
+//                 <YoutubeList youtubeList={youtubeList} />
+//             </Main>
+//         )
+//     }
+// }
