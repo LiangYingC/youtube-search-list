@@ -36,7 +36,25 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
     // 處理 youtubeList
     const [youtubeList, setYoutubeList] = useState(null)
     const [pageToken, setPageToken] = useState('')
-    const [isPrePageRender, setIsPrePageRender] = useState(true)
+    const [isFetching, setIsFetching] = useState(false);
+
+    useEffect(() => {
+        window.addEventListener('scroll', () => handleScroll())
+        return () => {
+            window.removeEventListener('scroll', () => handleScroll())
+        }
+    }, [])
+
+    useEffect(() => {
+        if (!isFetching) return
+        getYoutubeListFromAPI()
+    }, [isFetching])
+
+    function handleScroll() {
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100 && !isFetching) {
+            setIsFetching(true)
+        }
+    }
 
     function handleSearch() {
         const searchKeyWord = searchData.keyWord
@@ -44,7 +62,7 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
         if (searchKeyWord) {
             addCacheToStore(searchKeyWord, youtubeList, pageToken)
             const cacheData = getSearchCache(searchKeyWord)
-            resetYoutubeList(searchKeyWord, cacheData)
+            resetYoutubeList(cacheData)
         } else {
             alert('請輸入搜尋內容')
         }
@@ -58,11 +76,12 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
         } return null
     }
 
-    function resetYoutubeList(searchKeyWord, cacheData) {
+    function resetYoutubeList(cacheData) {
+        console.log('resetYoutubeList')
         setYoutubeList([])
         setPageToken('')
-        setIsPrePageRender(true)
-        cacheData ? setYoutubeListCacheToState(cacheData) : getYoutubeListFromAPI(searchKeyWord)
+        setIsFetching(false)
+        cacheData ? setYoutubeListCacheToState(cacheData) : getYoutubeListFromAPI()
     }
 
     function setYoutubeListCacheToState(cacheData) {
@@ -70,7 +89,8 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
         setPageToken(cacheData.pageToken)
     }
 
-    function getYoutubeListFromAPI(searchKeyWord) {
+    function getYoutubeListFromAPI() {
+        const searchKeyWord = searchData.keyWord
         const searchUrl = setSearchApiUrl(searchKeyWord, pageToken)
         axios.get(searchUrl)
             .then((response) => {
@@ -83,19 +103,18 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
                         return [...prevYoutubeList, ...newYoutubeList]
                     })
                     setPageToken(nextPageToken)
-                    setIsPrePageRender(true)
+                    setIsFetching(false)
                 } else {
                     setYoutubeList(newYoutubeList)
                     setPageToken(nextPageToken)
-                    setIsPrePageRender(true)
+                    setIsFetching(false)
                 }
             })
     }
 
-    function setSearchApiUrl(searchValue, pageToken) {
-        console.log(`setSearchApiUrl${searchValue}`)
+    function setSearchApiUrl(searchKeyWord, pageToken) {
         const searchUrl = `${youtubeConfig.baseUrl}/search?part=snippet&type=video
-                                &maxResults=${youtubeConfig.maxResults}&q=${searchValue}
+                                &maxResults=${youtubeConfig.maxResults}&q=${searchKeyWord}
                                 &key=${youtubeConfig.apiKey}&pageToken=${pageToken}`
         return searchUrl
     }
@@ -170,7 +189,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(YoutubePage);
 //     }
 
 //     componentWillUnmount() {
-//         window.addEventListener('scroll', this.handleScroll)
+//         window.removeEventListener('scroll', this.handleScroll)
 //     }
 
 //     handleScroll = () => {
