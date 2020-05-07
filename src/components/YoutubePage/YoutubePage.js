@@ -1,8 +1,9 @@
-import React, { Component, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { connect } from 'react-redux';
 import axios from 'axios';
 import SearchBar from '../SearchBar/SearchBar';
 import YoutubeList from '../YoutubeList/YoutubeList';
+import useInfiniteScroll from '../../hooks/useInfiniteScroll';
 import { youtubeConfig } from '../../configs/youtubeConfig';
 import { Main } from './YoutubePageStyle';
 
@@ -12,7 +13,7 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
         inputValue: '熱門音樂',
         keyWord: '熱門音樂'
     })
-    const changeValue = (e) => {
+    function changeValue(e) {
         e.persist()
         return setSearchData(preSearchData => {
             return {
@@ -21,7 +22,7 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
             }
         })
     }
-    const startSearch = () => {
+    function startSearch() {
         return setSearchData(preSearchData => {
             return {
                 ...preSearchData,
@@ -33,34 +34,14 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
         handleSearch()
     }, [searchData.keyWord])
 
-    // 處理 youtubeList
     const [youtubeList, setYoutubeList] = useState(null)
     const [pageToken, setPageToken] = useState('')
-    const [isFetching, setIsFetching] = useState(false);
-
-    useEffect(() => {
-        window.addEventListener('scroll', () => handleScroll())
-        return () => {
-            window.removeEventListener('scroll', () => handleScroll())
-        }
-    }, [])
-
-    useEffect(() => {
-        if (!isFetching) return
-        getYoutubeListFromAPI()
-    }, [isFetching])
-
-    function handleScroll() {
-        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100 && !isFetching) {
-            setIsFetching(true)
-        }
-    }
+    const [isFetching, setIsFetching] = useInfiniteScroll(getYoutubeListFromAPI)
 
     function handleSearch() {
         const searchKeyWord = searchData.keyWord
         window.scrollTo(0, 0)
         if (searchKeyWord) {
-            addCacheToStore(searchKeyWord, youtubeList, pageToken)
             const cacheData = getSearchCache(searchKeyWord)
             resetYoutubeList(cacheData)
         } else {
@@ -77,7 +58,6 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
     }
 
     function resetYoutubeList(cacheData) {
-        console.log('resetYoutubeList')
         setYoutubeList([])
         setPageToken('')
         setIsFetching(false)
@@ -96,8 +76,6 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
             .then((response) => {
                 const newYoutubeList = response.data.items
                 const nextPageToken = response.data.nextPageToken
-                console.log('axios.get')
-
                 if (pageToken) {
                     setYoutubeList(prevYoutubeList => {
                         return [...prevYoutubeList, ...newYoutubeList]
@@ -112,6 +90,11 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
             })
     }
 
+    useEffect(() => {
+        const searchKeyWord = searchData.keyWord
+        addCacheToStore(searchKeyWord, youtubeList, pageToken)
+    }, [searchData.keyWord, youtubeList, pageToken])
+
     function setSearchApiUrl(searchKeyWord, pageToken) {
         const searchUrl = `${youtubeConfig.baseUrl}/search?part=snippet&type=video
                                 &maxResults=${youtubeConfig.maxResults}&q=${searchKeyWord}
@@ -119,11 +102,7 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
         return searchUrl
     }
 
-
-
     if (youtubeList === null) {
-        console.log('render function')
-        console.log('null')
         return (
             <SearchBar
                 searchValue={searchData.inputValue}
@@ -132,6 +111,7 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
             />
         )
     } else {
+        console.log('render function')
         console.log(youtubeList)
         return (
             <Main>
