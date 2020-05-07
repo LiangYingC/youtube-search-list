@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { connect } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import axios from 'axios';
 import SearchBar from '../SearchBar/SearchBar';
 import YoutubeList from '../YoutubeList/YoutubeList';
@@ -8,8 +8,8 @@ import useYoutubeSearch from '../../hooks/useYoutubeSearch';
 import { youtubeConfig } from '../../configs/youtubeConfig';
 import { Main } from './YoutubePageStyle';
 
-const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
 
+const YoutubePage = () => {
     const [searchData, changeValue, startSearch] = useYoutubeSearch(handleSearch)
     const [youtubeData, setYoutubeData] = useState({
         list: null,
@@ -17,6 +17,16 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
     })
     const [setIsFetching] = useInfiniteScroll(getYoutubeListFromAPI)
 
+    const youtubeSearchCache = useSelector(state => state.youtubeSearchCache)
+    const dispatch = useDispatch();
+    const addCacheToStore = (searchKeyWord, youtubeList, pageToken) => {
+        dispatch({
+            type: 'ADD_YOUTUBE_CACHE',
+            searchKeyWord: searchKeyWord,
+            youtubeList: youtubeList,
+            pageToken: pageToken
+        })
+    }
     useEffect(() => {
         const searchKeyWord = searchData.keyWord
         addCacheToStore(searchKeyWord, youtubeData.list, youtubeData.pageToken)
@@ -109,28 +119,9 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
             </Main >
         )
     }
-
 }
 
-
-const mapStateToProps = (state) => {
-    return {
-        youtubeSearchCache: state.youtubeSearchCache
-    }
-}
-
-const mapDispatchToProps = (dispatch) => {
-    return {
-        addCacheToStore: (searchKeyWord, youtubeList, pageToken) => dispatch({
-            type: 'ADD_YOUTUBE_CACHE',
-            searchKeyWord: searchKeyWord,
-            youtubeList: youtubeList,
-            pageToken: pageToken
-        })
-    }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(YoutubePage);
+export default YoutubePage;
 
 
 
