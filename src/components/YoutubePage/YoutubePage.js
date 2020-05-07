@@ -11,9 +11,16 @@ import { Main } from './YoutubePageStyle';
 const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
 
     const [searchData, changeValue, startSearch] = useYoutubeSearch(handleSearch)
-    const [youtubeList, setYoutubeList] = useState(null)
-    const [pageToken, setPageToken] = useState('')
+    const [youtubeData, setYoutubeData] = useState({
+        list: null,
+        pageToken: ''
+    })
     const [setIsFetching] = useInfiniteScroll(getYoutubeListFromAPI)
+
+    useEffect(() => {
+        const searchKeyWord = searchData.keyWord
+        addCacheToStore(searchKeyWord, youtubeData.list, youtubeData.pageToken)
+    }, [searchData.keyWord, youtubeData.list, youtubeData.pageToken])
 
     function handleSearch() {
         const searchKeyWord = searchData.keyWord
@@ -35,42 +42,45 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
     }
 
     function resetYoutubeList(cacheData) {
-        setYoutubeList([])
-        setPageToken('')
+        setYoutubeData({
+            list: [],
+            pageToken: ''
+        })
         setIsFetching(false)
         cacheData ? setYoutubeListCacheToState(cacheData) : getYoutubeListFromAPI()
     }
 
     function setYoutubeListCacheToState(cacheData) {
-        setYoutubeList(cacheData.youtubeList)
-        setPageToken(cacheData.pageToken)
+        setYoutubeData({
+            list: cacheData.youtubeList,
+            pageToken: cacheData.pageToken
+        })
     }
 
     function getYoutubeListFromAPI() {
         const searchKeyWord = searchData.keyWord
-        const searchUrl = setSearchApiUrl(searchKeyWord, pageToken)
+        const searchUrl = setSearchApiUrl(searchKeyWord, youtubeData.pageToken)
         axios.get(searchUrl)
             .then((response) => {
                 const newYoutubeList = response.data.items
                 const nextPageToken = response.data.nextPageToken
-                if (pageToken) {
-                    setYoutubeList(prevYoutubeList => {
-                        return [...prevYoutubeList, ...newYoutubeList]
+                if (youtubeData.pageToken) {
+                    setYoutubeData(preYoutubeData => {
+                        return {
+                            list: [...preYoutubeData.list, ...newYoutubeList],
+                            pageToken: nextPageToken
+                        }
                     })
-                    setPageToken(nextPageToken)
                     setIsFetching(false)
                 } else {
-                    setYoutubeList(newYoutubeList)
-                    setPageToken(nextPageToken)
+                    setYoutubeData({
+                        list: newYoutubeList,
+                        pageToken: nextPageToken
+                    })
                     setIsFetching(false)
                 }
             })
     }
-
-    useEffect(() => {
-        const searchKeyWord = searchData.keyWord
-        addCacheToStore(searchKeyWord, youtubeList, pageToken)
-    }, [searchData.keyWord, youtubeList, pageToken])
 
     function setSearchApiUrl(searchKeyWord, pageToken) {
         const searchUrl = `${youtubeConfig.baseUrl}/search?part=snippet&type=video
@@ -79,7 +89,7 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
         return searchUrl
     }
 
-    if (youtubeList === null) {
+    if (youtubeData.list === null) {
         return (
             <SearchBar
                 searchValue={searchData.inputValue}
@@ -88,8 +98,6 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
             />
         )
     } else {
-        console.log('render function')
-        console.log(youtubeList)
         return (
             <Main>
                 <SearchBar
@@ -97,7 +105,7 @@ const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
                     changeValue={changeValue}
                     handleSearch={startSearch}
                 />
-                <YoutubeList youtubeList={youtubeList} />
+                <YoutubeList youtubeList={youtubeData.list} />
             </Main >
         )
     }
