@@ -4,39 +4,16 @@ import axios from 'axios';
 import SearchBar from '../SearchBar/SearchBar';
 import YoutubeList from '../YoutubeList/YoutubeList';
 import useInfiniteScroll from '../../hooks/useInfiniteScroll';
+import useYoutubeSearch from '../../hooks/useYoutubeSearch';
 import { youtubeConfig } from '../../configs/youtubeConfig';
 import { Main } from './YoutubePageStyle';
 
 const YoutubePage = ({ addCacheToStore, youtubeSearchCache }) => {
 
-    const [searchData, setSearchData] = useState({
-        inputValue: '熱門音樂',
-        keyWord: '熱門音樂'
-    })
-    function changeValue(e) {
-        e.persist()
-        return setSearchData(preSearchData => {
-            return {
-                ...preSearchData,
-                inputValue: e.target.value
-            }
-        })
-    }
-    function startSearch() {
-        return setSearchData(preSearchData => {
-            return {
-                ...preSearchData,
-                keyWord: preSearchData.inputValue
-            }
-        })
-    }
-    useEffect(() => {
-        handleSearch()
-    }, [searchData.keyWord])
-
+    const [searchData, changeValue, startSearch] = useYoutubeSearch(handleSearch)
     const [youtubeList, setYoutubeList] = useState(null)
     const [pageToken, setPageToken] = useState('')
-    const [isFetching, setIsFetching] = useInfiniteScroll(getYoutubeListFromAPI)
+    const [setIsFetching] = useInfiniteScroll(getYoutubeListFromAPI)
 
     function handleSearch() {
         const searchKeyWord = searchData.keyWord
@@ -150,6 +127,8 @@ export default connect(mapStateToProps, mapDispatchToProps)(YoutubePage);
 
 
 
+
+/***  Class Style ***/
 
 // class YoutubePage extends Component {
 //     constructor(props) {
